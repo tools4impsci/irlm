@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- html2canvas for PNG Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- html-to-image for PNG Export (Fixes vertical text rendering) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <style>
         /* Custom styles for specific diagram requirements not easily handled by utility classes */
         .vertical-text-left {
@@ -60,7 +60,7 @@
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model</h1>
-                <p class="text-sm text-slate-500">BRIDGE Bootcamp (Spring '26)</p>
+                <p class="text-sm text-slate-500">BRIDGE Implementation Science Bootcamp (Spring '26)</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button onclick="exportPNG()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
@@ -311,13 +311,11 @@
             const diagramContainer = document.getElementById('diagram-container');
             
             try {
-                const canvas = await html2canvas(diagramContainer, {
-                    scale: 2, // Double the resolution for clear text
-                    backgroundColor: '#ffffff', // Force white background
-                    logging: false
+                // Use htmlToImage instead of html2canvas for accurate writing-mode rendering
+                const url = await htmlToImage.toPng(diagramContainer, {
+                    pixelRatio: 2, // Double the resolution for clear text
+                    backgroundColor: '#ffffff' // Force white background
                 });
-                
-                const url = canvas.toDataURL('image/png');
                 
                 const a = document.createElement('a');
                 a.href = url;
