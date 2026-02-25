@@ -42,7 +42,8 @@
         }
 
         /* Content Editable Placeholder CSS */
-        [contenteditable]:empty:before {
+        [contenteditable]:empty:before,
+        [contenteditable]:has(br:only-child):before {
             content: attr(data-placeholder);
             color: #94a3b8;
             pointer-events: none;
@@ -57,7 +58,7 @@
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model (IRLM)</h1>
-                <p class="text-sm text-slate-500">BRIDGE Bootcamp (Spring '26)</p>
+                <p class="text-sm text-slate-500">BRIDGE ImpSci Bootcamp (Spring '26)</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button onclick="exportPNG()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
@@ -244,11 +245,16 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
             
-            // Attach debounced auto-save listener to all contenteditable divs
+            // Attach debounced auto-save listener and emptiness checks
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
                 if(el) {
-                    el.addEventListener('input', () => {
+                    el.addEventListener('input', function() {
+                        // Force absolute emptiness if there are only spaces or stray linebreaks
+                        if (this.innerText.trim() === '') {
+                            this.innerHTML = '';
+                        }
+                        
                         clearTimeout(saveTimeout);
                         saveTimeout = setTimeout(saveDataQuietly, 1000); // Wait 1s after typing stops to save
                     });
@@ -262,8 +268,10 @@
             const data = {};
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
-                // Use innerText to get the plain text structure from contenteditable
-                if(el) data[id] = el.innerText;
+                if(el) {
+                    // Only save content if it's not effectively empty
+                    data[id] = el.innerText.trim() === '' ? '' : el.innerText;
+                }
             });
             return data;
         }
@@ -285,7 +293,11 @@
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (el && data[id] !== undefined) {
-                    el.innerText = data[id];
+                    if (data[id].trim() === '') {
+                        el.innerHTML = ''; // Ensure it perfectly matches :empty CSS
+                    } else {
+                        el.innerText = data[id];
+                    }
                 }
             });
         }
@@ -352,7 +364,7 @@
         function executeClear() {
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.innerText = '';
+                if(el) el.innerHTML = ''; // Now forces HTML to be purely empty for CSS
             });
             localStorage.removeItem(LOCAL_STORAGE_KEY);
             hideClearModal();
