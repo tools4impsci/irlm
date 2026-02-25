@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementation Research Logic Model (IRLM)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles for specific diagram requirements not easily handled by utility classes */
+        .vertical-text-left {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+        }
+        
+        .vertical-text-right {
+            writing-mode: vertical-rl;
+            text-align: center;
+        }
+
+        /* Custom Scrollbar for the workspace */
+        .workspace-scroll::-webkit-scrollbar {
+            height: 12px;
+            width: 12px;
+        }
+        .workspace-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .workspace-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 8px;
+            border: 3px solid #f1f5f9;
+        }
+        .workspace-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8;
+        }
+
+        /* textarea focus transition */
+        textarea {
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        textarea:focus {
+            background-color: #f8fafc;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header & Toolbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model</h1>
+                <p class="text-sm text-slate-500">Interactive Framework Analysis Tool</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="triggerImport()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Import
+                </button>
+                <!-- Hidden file input for import -->
+                <input type="file" id="fileImport" class="hidden" accept=".json" onchange="handleImport(event)">
+
+                <button onclick="exportJSON()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
+                    <i data-lucide="download" class="w-4 h-4"></i> Export
+                </button>
+                <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                <button onclick="manualSave()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">
+                    <i data-lucide="save" class="w-4 h-4"></i> Save
+                </button>
+                <button onclick="showClearModal()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors shadow-sm">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Clear
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 overflow-hidden flex flex-col max-w-[1600px] w-full mx-auto p-4 sm:p-6">
+        <div class="workspace-scroll overflow-x-auto overflow-y-auto bg-white rounded-xl shadow-sm border border-slate-200 flex-1 relative">
+            
+            <!-- Diagram Container (Fixed minimum width to prevent squishing) -->
+            <div class="min-w-[1200px] h-full min-h-[700px] p-6 flex items-stretch gap-4">
+                
+                <!-- 1. Determinants -->
+                <div class="flex-1 flex flex-col">
+                    <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Determinants</h2>
+                    <div class="flex-1 border-2 border-slate-800 p-2 flex flex-col gap-2 rounded-md bg-white">
+                        
+                        <!-- Interventions -->
+                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-left whitespace-nowrap">Intervention<br>Characteristics</span>
+                            </div>
+                            <textarea id="det-intervention" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Document attributes of the intervention..."></textarea>
+                        </div>
+                        
+                        <!-- Inner Setting -->
+                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-left whitespace-nowrap">Inner<br>Setting</span>
+                            </div>
+                            <textarea id="det-inner" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Features of the implementing organization..."></textarea>
+                        </div>
+
+                        <!-- Outer Setting -->
+                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-left whitespace-nowrap">Outer<br>Setting</span>
+                            </div>
+                            <textarea id="det-outer" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="External context, policies, environments..."></textarea>
+                        </div>
+
+                        <!-- Characteristics of Individuals -->
+                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors leading-tight">
+                                <span class="vertical-text-left whitespace-nowrap">Characteristics<br>of Individuals</span>
+                            </div>
+                            <textarea id="det-individuals" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Knowledge, beliefs, attributes of people involved..."></textarea>
+                        </div>
+
+                        <!-- Process -->
+                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-left whitespace-nowrap">Process</span>
+                            </div>
+                            <textarea id="det-process" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Planning, engaging, executing, reflecting..."></textarea>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Right Arrow -->
+                <div class="w-8 flex items-center justify-center text-blue-600">
+                    <i data-lucide="arrow-right" class="w-8 h-8 stroke-[3]"></i>
+                </div>
+
+                <!-- 2. Implementation Strategies -->
+                <div class="flex-1 flex flex-col">
+                    <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Implementation Strategies</h2>
+                    <div class="flex-1 border-2 border-slate-800 rounded-md bg-white overflow-hidden flex">
+                        <textarea id="imp-strategies" class="w-full h-full p-4 resize-none text-sm leading-relaxed" placeholder="Specify strategies used to enhance adoption, implementation, and sustainability..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Right Arrow -->
+                <div class="w-8 flex items-center justify-center text-blue-600">
+                    <i data-lucide="arrow-right" class="w-8 h-8 stroke-[3]"></i>
+                </div>
+
+                <!-- 3. Mechanisms -->
+                <div class="flex-1 flex flex-col">
+                    <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Mechanisms</h2>
+                    <div class="flex-1 border-2 border-slate-800 rounded-md bg-white overflow-hidden flex">
+                        <textarea id="mechanisms" class="w-full h-full p-4 resize-none text-sm leading-relaxed" placeholder="Explain how the strategies cause changes in the determinants or outcomes..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Right Arrow -->
+                <div class="w-8 flex items-center justify-center text-blue-600">
+                    <i data-lucide="arrow-right" class="w-8 h-8 stroke-[3]"></i>
+                </div>
+
+                <!-- 4. Outcomes -->
+                <div class="flex-1 flex flex-col">
+                    <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Outcomes</h2>
+                    <div class="flex-1 flex flex-col gap-1 relative border-2 border-slate-800 p-2 rounded-md bg-white">
+                        
+                        <!-- Implementation Outcomes -->
+                        <div class="flex-[2] flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <textarea id="out-implementation" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Acceptability, adoption, appropriateness, costs, feasibility..."></textarea>
+                            <div class="w-10 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-right whitespace-nowrap">Implementation</span>
+                            </div>
+                        </div>
+
+                        <!-- Down Arrow -->
+                        <div class="flex justify-center text-blue-600 py-1">
+                            <i data-lucide="arrow-down" class="w-6 h-6 stroke-[3]"></i>
+                        </div>
+
+                        <!-- Service Outcomes -->
+                        <div class="flex-[1] flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <textarea id="out-service" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Efficiency, safety, effectiveness, equity..."></textarea>
+                            <div class="w-10 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-right whitespace-nowrap">Service</span>
+                            </div>
+                        </div>
+
+                        <!-- Down Arrow -->
+                        <div class="flex justify-center text-blue-600 py-1">
+                            <i data-lucide="arrow-down" class="w-6 h-6 stroke-[3]"></i>
+                        </div>
+
+                        <!-- Clinical/Patient Outcomes -->
+                        <div class="flex-[2] flex border border-slate-400 rounded-sm overflow-hidden group">
+                            <textarea id="out-clinical" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Health status, symptoms, satisfaction..."></textarea>
+                            <div class="w-10 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <span class="vertical-text-right whitespace-nowrap">Clinical/Patient</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 flex flex-col gap-3 z-50"></div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-sm p-6 transform scale-95 transition-transform duration-200" id="confirmModalContent">
+            <div class="flex items-center gap-4 mb-4 text-red-600">
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">Clear Diagram?</h3>
+            </div>
+            <p class="text-slate-600 text-sm mb-6">Are you sure you want to clear all the data in your logic model? This action cannot be undone.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="hideClearModal()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+                <button onclick="executeClear()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition-colors shadow-sm">Yes, Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Constants
+        const LOCAL_STORAGE_KEY = 'irlmData_optimized';
+        const fieldIds = [
+            'det-intervention', 'det-inner', 'det-outer', 'det-individuals', 'det-process',
+            'imp-strategies', 'mechanisms',
+            'out-implementation', 'out-service', 'out-clinical'
+        ];
+
+        let saveTimeout;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            
+            // Attach debounced auto-save listener to all textareas
+            fieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.addEventListener('input', () => {
+                        clearTimeout(saveTimeout);
+                        saveTimeout = setTimeout(saveDataQuietly, 1000); // Wait 1s after typing stops to save
+                    });
+                }
+            });
+        });
+
+        // --- Core Functions ---
+
+        function getFormData() {
+            const data = {};
+            fieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) data[id] = el.value;
+            });
+            return data;
+        }
+
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    populateForm(data);
+                }
+            } catch (e) {
+                console.error("Error loading saved data", e);
+                showToast("Failed to load saved data", "error");
+            }
+        }
+
+        function populateForm(data) {
+            fieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && data[id] !== undefined) {
+                    el.value = data[id];
+                }
+            });
+        }
+
+        function saveDataQuietly() {
+            const data = getFormData();
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function manualSave() {
+            saveDataQuietly();
+            showToast("Progress saved locally", "success", "check-circle");
+        }
+
+        // --- Import / Export ---
+
+        function exportJSON() {
+            const data = getFormData();
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `irlm_analysis_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast("Model exported successfully", "success", "download");
+        }
+
+        function triggerImport() {
+            document.getElementById('fileImport').click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    populateForm(data);
+                    saveDataQuietly();
+                    showToast("Data imported successfully", "success", "upload");
+                } catch (err) {
+                    showToast("Invalid JSON file", "error", "alert-circle");
+                }
+                // Reset input so the same file can be uploaded again if needed
+                event.target.value = ''; 
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Custom Modal Logic (Clear Data) ---
+        
+        const modal = document.getElementById('confirmModal');
+        const modalContent = document.getElementById('confirmModalContent');
+
+        function showClearModal() {
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        }
+
+        function hideClearModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200); // match transition duration
+        }
+
+        function executeClear() {
+            fieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            hideClearModal();
+            showToast("Board cleared", "info", "trash-2");
+        }
+
+        // --- Toast Notification System ---
+
+        function showToast(message, type = "info", iconName = "info") {
+            const container = document.getElementById('toastContainer');
+            
+            const toast = document.createElement('div');
+            
+            // Base styles
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border transform transition-all duration-300 translate-y-10 opacity-0 min-w-[250px]`;
+            
+            // Color variations
+            if (type === "success") {
+                toast.classList.add("bg-green-50", "border-green-200", "text-green-800");
+            } else if (type === "error") {
+                toast.classList.add("bg-red-50", "border-red-200", "text-red-800");
+            } else {
+                toast.classList.add("bg-blue-50", "border-blue-200", "text-blue-800");
+            }
+
+            // Inner HTML
+            toast.innerHTML = `
+                <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
