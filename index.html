@@ -7,19 +7,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- html-to-image for PNG Export (Fixes vertical text rendering) -->
+    <!-- html-to-image for PNG Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <style>
-        /* Custom styles for specific diagram requirements not easily handled by utility classes */
+        /* Custom styles for rotated text to ensure export compatibility */
         .vertical-text-left {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            text-align: center;
+            transform: rotate(-90deg);
+            white-space: nowrap;
+            display: block;
         }
         
         .vertical-text-right {
-            writing-mode: vertical-rl;
-            text-align: center;
+            transform: rotate(90deg);
+            white-space: nowrap;
+            display: block;
         }
 
         /* Custom Scrollbar for the workspace */
@@ -47,10 +48,6 @@
             pointer-events: none;
             display: block;
         }
-
-        [contenteditable] {
-            min-height: 80px; /* Minimum height for empty boxes */
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
@@ -59,8 +56,8 @@
     <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model</h1>
-                <p class="text-sm text-slate-500">BRIDGE Implementation Science Bootcamp (Spring '26)</p>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model (IRLM)</h1>
+                <p class="text-sm text-slate-500">BRIDGE Bootcamp (Spring '26)</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button onclick="exportPNG()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
@@ -81,7 +78,7 @@
     <main class="flex-1 overflow-hidden flex flex-col max-w-[1600px] w-full mx-auto p-4 sm:p-6">
         <div class="workspace-scroll overflow-x-auto overflow-y-auto bg-white rounded-xl shadow-sm border border-slate-200 flex-1 relative">
             
-            <!-- Diagram Container (Fixed minimum width, but height auto-expands) -->
+            <!-- Diagram Container -->
             <div id="diagram-container" class="min-w-[1200px] min-h-[700px] h-auto p-8 flex items-stretch gap-4 bg-white">
                 
                 <!-- 1. Determinants -->
@@ -90,43 +87,43 @@
                     <div class="flex-1 border-2 border-slate-800 p-2 flex flex-col gap-2 rounded-md bg-white">
                         
                         <!-- Interventions -->
-                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[120px]">
                             <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-left whitespace-nowrap">Intervention<br>Characteristics</span>
+                                <div class="vertical-text-left text-center leading-tight">Intervention<br>Characteristics</div>
                             </div>
-                            <div id="det-intervention" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Document attributes of the intervention..."></div>
+                            <div id="det-intervention" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Document attributes of the intervention..."></div>
                         </div>
                         
                         <!-- Inner Setting -->
-                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[120px]">
                             <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-left whitespace-nowrap">Inner<br>Setting</span>
+                                <div class="vertical-text-left text-center leading-tight">Inner<br>Setting</div>
                             </div>
-                            <div id="det-inner" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Features of the implementing organization..."></div>
+                            <div id="det-inner" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Features of the implementing organization..."></div>
                         </div>
 
                         <!-- Outer Setting -->
-                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[120px]">
                             <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-left whitespace-nowrap">Outer<br>Setting</span>
+                                <div class="vertical-text-left text-center leading-tight">Outer<br>Setting</div>
                             </div>
-                            <div id="det-outer" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="External context, policies, environments..."></div>
+                            <div id="det-outer" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="External context, policies, environments..."></div>
                         </div>
 
                         <!-- Characteristics of Individuals -->
-                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors leading-tight">
-                                <span class="vertical-text-left whitespace-nowrap">Characteristics<br>of Individuals</span>
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[120px]">
+                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                                <div class="vertical-text-left text-center leading-tight">Characteristics<br>of Individuals</div>
                             </div>
-                            <div id="det-individuals" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Knowledge, beliefs, attributes of people involved..."></div>
+                            <div id="det-individuals" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Knowledge, beliefs, attributes of people involved..."></div>
                         </div>
 
                         <!-- Process -->
-                        <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[120px]">
                             <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-left whitespace-nowrap">Process</span>
+                                <div class="vertical-text-left text-center leading-tight">Process</div>
                             </div>
-                            <div id="det-process" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Planning, engaging, executing, reflecting..."></div>
+                            <div id="det-process" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Planning, engaging, executing, reflecting..."></div>
                         </div>
 
                     </div>
@@ -141,7 +138,7 @@
                 <div class="flex-1 flex flex-col">
                     <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Implementation Strategies</h2>
                     <div class="flex-1 border-2 border-slate-800 rounded-md bg-white overflow-hidden flex">
-                        <div id="imp-strategies" contenteditable="true" class="w-full h-full p-4 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Specify strategies used to enhance adoption, implementation, and sustainability..."></div>
+                        <div id="imp-strategies" contenteditable="true" class="flex-1 p-4 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Specify strategies used to enhance adoption, implementation, and sustainability..."></div>
                     </div>
                 </div>
 
@@ -154,7 +151,7 @@
                 <div class="flex-1 flex flex-col">
                     <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Mechanisms</h2>
                     <div class="flex-1 border-2 border-slate-800 rounded-md bg-white overflow-hidden flex">
-                        <div id="mechanisms" contenteditable="true" class="w-full h-full p-4 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Explain how the strategies cause changes in the determinants or outcomes..."></div>
+                        <div id="mechanisms" contenteditable="true" class="flex-1 p-4 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Explain how the strategies cause changes in the determinants or outcomes..."></div>
                     </div>
                 </div>
 
@@ -169,10 +166,10 @@
                     <div class="flex-1 flex flex-col gap-1 relative border-2 border-slate-800 p-2 rounded-md bg-white">
                         
                         <!-- Implementation Outcomes -->
-                        <div class="flex-[2] flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div id="out-implementation" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Acceptability, adoption, appropriateness, costs, feasibility..."></div>
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[140px]">
+                            <div id="out-implementation" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Acceptability, adoption, appropriateness, costs, feasibility..."></div>
                             <div class="w-10 shrink-0 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-right whitespace-nowrap">Implementation</span>
+                                <div class="vertical-text-right text-center leading-tight">Implementation</div>
                             </div>
                         </div>
 
@@ -182,10 +179,10 @@
                         </div>
 
                         <!-- Service Outcomes -->
-                        <div class="flex-[1] flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div id="out-service" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Efficiency, safety, effectiveness, equity..."></div>
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[140px]">
+                            <div id="out-service" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Efficiency, safety, effectiveness, equity..."></div>
                             <div class="w-10 shrink-0 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-right whitespace-nowrap">Service</span>
+                                <div class="vertical-text-right text-center leading-tight">Service</div>
                             </div>
                         </div>
 
@@ -195,10 +192,10 @@
                         </div>
 
                         <!-- Clinical/Patient Outcomes -->
-                        <div class="flex-[2] flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div id="out-clinical" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Health status, symptoms, satisfaction..."></div>
+                        <div class="flex-auto flex border border-slate-400 rounded-sm overflow-hidden group min-h-[140px]">
+                            <div id="out-clinical" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Health status, symptoms, satisfaction..."></div>
                             <div class="w-10 shrink-0 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
-                                <span class="vertical-text-right whitespace-nowrap">Clinical/Patient</span>
+                                <div class="vertical-text-right text-center leading-tight">Clinical/Patient</div>
                             </div>
                         </div>
 
