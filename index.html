@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas for PNG Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* Custom styles for specific diagram requirements not easily handled by utility classes */
         .vertical-text-left {
@@ -38,13 +40,16 @@
             background-color: #94a3b8;
         }
 
-        /* textarea focus transition */
-        textarea {
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        /* Content Editable Placeholder CSS */
+        [contenteditable]:empty:before {
+            content: attr(data-placeholder);
+            color: #94a3b8;
+            pointer-events: none;
+            display: block;
         }
-        textarea:focus {
-            background-color: #f8fafc;
-            outline: none;
+
+        [contenteditable] {
+            min-height: 80px; /* Minimum height for empty boxes */
         }
     </style>
 </head>
@@ -55,17 +60,11 @@
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model</h1>
-                <p class="text-sm text-slate-500">BRIDGE Bootcamp (Spring 2026)</p>
+                <p class="text-sm text-slate-500">BRIDGE Bootcamp (Spring '26)</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <button onclick="triggerImport()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
-                    <i data-lucide="upload" class="w-4 h-4"></i> Import
-                </button>
-                <!-- Hidden file input for import -->
-                <input type="file" id="fileImport" class="hidden" accept=".json" onchange="handleImport(event)">
-
-                <button onclick="exportJSON()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
-                    <i data-lucide="download" class="w-4 h-4"></i> Export
+                <button onclick="exportPNG()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
+                    <i data-lucide="image" class="w-4 h-4"></i> Export PNG
                 </button>
                 <div class="w-px h-6 bg-slate-300 mx-1"></div>
                 <button onclick="manualSave()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm">
@@ -82,8 +81,8 @@
     <main class="flex-1 overflow-hidden flex flex-col max-w-[1600px] w-full mx-auto p-4 sm:p-6">
         <div class="workspace-scroll overflow-x-auto overflow-y-auto bg-white rounded-xl shadow-sm border border-slate-200 flex-1 relative">
             
-            <!-- Diagram Container (Fixed minimum width to prevent squishing) -->
-            <div class="min-w-[1200px] h-full min-h-[700px] p-6 flex items-stretch gap-4">
+            <!-- Diagram Container (Fixed minimum width, but height auto-expands) -->
+            <div id="diagram-container" class="min-w-[1200px] min-h-[700px] h-auto p-8 flex items-stretch gap-4 bg-white">
                 
                 <!-- 1. Determinants -->
                 <div class="flex-1 flex flex-col">
@@ -92,49 +91,49 @@
                         
                         <!-- Interventions -->
                         <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-left whitespace-nowrap">Intervention<br>Characteristics</span>
                             </div>
-                            <textarea id="det-intervention" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Document attributes of the intervention..."></textarea>
+                            <div id="det-intervention" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Document attributes of the intervention..."></div>
                         </div>
                         
                         <!-- Inner Setting -->
                         <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-left whitespace-nowrap">Inner<br>Setting</span>
                             </div>
-                            <textarea id="det-inner" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Features of the implementing organization..."></textarea>
+                            <div id="det-inner" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Features of the implementing organization..."></div>
                         </div>
 
                         <!-- Outer Setting -->
                         <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-left whitespace-nowrap">Outer<br>Setting</span>
                             </div>
-                            <textarea id="det-outer" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="External context, policies, environments..."></textarea>
+                            <div id="det-outer" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="External context, policies, environments..."></div>
                         </div>
 
                         <!-- Characteristics of Individuals -->
                         <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors leading-tight">
+                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors leading-tight">
                                 <span class="vertical-text-left whitespace-nowrap">Characteristics<br>of Individuals</span>
                             </div>
-                            <textarea id="det-individuals" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Knowledge, beliefs, attributes of people involved..."></textarea>
+                            <div id="det-individuals" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Knowledge, beliefs, attributes of people involved..."></div>
                         </div>
 
                         <!-- Process -->
                         <div class="flex-1 flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <div class="w-10 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-left whitespace-nowrap">Process</span>
                             </div>
-                            <textarea id="det-process" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Planning, engaging, executing, reflecting..."></textarea>
+                            <div id="det-process" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Planning, engaging, executing, reflecting..."></div>
                         </div>
 
                     </div>
                 </div>
 
                 <!-- Right Arrow -->
-                <div class="w-8 flex items-center justify-center text-blue-600">
+                <div class="w-8 flex items-center justify-center text-blue-600 shrink-0">
                     <i data-lucide="arrow-right" class="w-8 h-8 stroke-[3]"></i>
                 </div>
 
@@ -142,12 +141,12 @@
                 <div class="flex-1 flex flex-col">
                     <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Implementation Strategies</h2>
                     <div class="flex-1 border-2 border-slate-800 rounded-md bg-white overflow-hidden flex">
-                        <textarea id="imp-strategies" class="w-full h-full p-4 resize-none text-sm leading-relaxed" placeholder="Specify strategies used to enhance adoption, implementation, and sustainability..."></textarea>
+                        <div id="imp-strategies" contenteditable="true" class="w-full h-full p-4 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Specify strategies used to enhance adoption, implementation, and sustainability..."></div>
                     </div>
                 </div>
 
                 <!-- Right Arrow -->
-                <div class="w-8 flex items-center justify-center text-blue-600">
+                <div class="w-8 flex items-center justify-center text-blue-600 shrink-0">
                     <i data-lucide="arrow-right" class="w-8 h-8 stroke-[3]"></i>
                 </div>
 
@@ -155,12 +154,12 @@
                 <div class="flex-1 flex flex-col">
                     <h2 class="text-center font-bold text-slate-800 mb-3 text-lg">Mechanisms</h2>
                     <div class="flex-1 border-2 border-slate-800 rounded-md bg-white overflow-hidden flex">
-                        <textarea id="mechanisms" class="w-full h-full p-4 resize-none text-sm leading-relaxed" placeholder="Explain how the strategies cause changes in the determinants or outcomes..."></textarea>
+                        <div id="mechanisms" contenteditable="true" class="w-full h-full p-4 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Explain how the strategies cause changes in the determinants or outcomes..."></div>
                     </div>
                 </div>
 
                 <!-- Right Arrow -->
-                <div class="w-8 flex items-center justify-center text-blue-600">
+                <div class="w-8 flex items-center justify-center text-blue-600 shrink-0">
                     <i data-lucide="arrow-right" class="w-8 h-8 stroke-[3]"></i>
                 </div>
 
@@ -171,34 +170,34 @@
                         
                         <!-- Implementation Outcomes -->
                         <div class="flex-[2] flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <textarea id="out-implementation" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Acceptability, adoption, appropriateness, costs, feasibility..."></textarea>
-                            <div class="w-10 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div id="out-implementation" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Acceptability, adoption, appropriateness, costs, feasibility..."></div>
+                            <div class="w-10 shrink-0 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-right whitespace-nowrap">Implementation</span>
                             </div>
                         </div>
 
                         <!-- Down Arrow -->
-                        <div class="flex justify-center text-blue-600 py-1">
+                        <div class="flex justify-center text-blue-600 py-1 shrink-0">
                             <i data-lucide="arrow-down" class="w-6 h-6 stroke-[3]"></i>
                         </div>
 
                         <!-- Service Outcomes -->
                         <div class="flex-[1] flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <textarea id="out-service" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Efficiency, safety, effectiveness, equity..."></textarea>
-                            <div class="w-10 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div id="out-service" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Efficiency, safety, effectiveness, equity..."></div>
+                            <div class="w-10 shrink-0 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-right whitespace-nowrap">Service</span>
                             </div>
                         </div>
 
                         <!-- Down Arrow -->
-                        <div class="flex justify-center text-blue-600 py-1">
+                        <div class="flex justify-center text-blue-600 py-1 shrink-0">
                             <i data-lucide="arrow-down" class="w-6 h-6 stroke-[3]"></i>
                         </div>
 
                         <!-- Clinical/Patient Outcomes -->
                         <div class="flex-[2] flex border border-slate-400 rounded-sm overflow-hidden group">
-                            <textarea id="out-clinical" class="w-full h-full p-3 resize-none text-sm leading-relaxed" placeholder="Health status, symptoms, satisfaction..."></textarea>
-                            <div class="w-10 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
+                            <div id="out-clinical" contenteditable="true" class="w-full h-full p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Health status, symptoms, satisfaction..."></div>
+                            <div class="w-10 shrink-0 bg-slate-100 border-l border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <span class="vertical-text-right whitespace-nowrap">Clinical/Patient</span>
                             </div>
                         </div>
@@ -248,7 +247,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
             
-            // Attach debounced auto-save listener to all textareas
+            // Attach debounced auto-save listener to all contenteditable divs
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
                 if(el) {
@@ -266,7 +265,8 @@
             const data = {};
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) data[id] = el.value;
+                // Use innerText to get the plain text structure from contenteditable
+                if(el) data[id] = el.innerText;
             });
             return data;
         }
@@ -288,7 +288,7 @@
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (el && data[id] !== undefined) {
-                    el.value = data[id];
+                    el.innerText = data[id];
                 }
             });
         }
@@ -303,47 +303,34 @@
             showToast("Progress saved locally", "success", "check-circle");
         }
 
-        // --- Import / Export ---
+        // --- PNG Export ---
 
-        function exportJSON() {
-            const data = getFormData();
-            const dataStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
+        async function exportPNG() {
+            showToast("Generating image...", "info", "image");
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `irlm_analysis_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const diagramContainer = document.getElementById('diagram-container');
             
-            showToast("Model exported successfully", "success", "download");
-        }
-
-        function triggerImport() {
-            document.getElementById('fileImport').click();
-        }
-
-        function handleImport(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    populateForm(data);
-                    saveDataQuietly();
-                    showToast("Data imported successfully", "success", "upload");
-                } catch (err) {
-                    showToast("Invalid JSON file", "error", "alert-circle");
-                }
-                // Reset input so the same file can be uploaded again if needed
-                event.target.value = ''; 
-            };
-            reader.readAsText(file);
+            try {
+                const canvas = await html2canvas(diagramContainer, {
+                    scale: 2, // Double the resolution for clear text
+                    backgroundColor: '#ffffff', // Force white background
+                    logging: false
+                });
+                
+                const url = canvas.toDataURL('image/png');
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `irlm_diagram_${new Date().toISOString().split('T')[0]}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                showToast("Image exported successfully", "success", "download");
+            } catch (error) {
+                console.error("Failed to generate PNG:", error);
+                showToast("Failed to export image", "error", "alert-circle");
+            }
         }
 
         // --- Custom Modal Logic (Clear Data) ---
@@ -370,7 +357,7 @@
         function executeClear() {
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.value = '';
+                if(el) el.innerText = '';
             });
             localStorage.removeItem(LOCAL_STORAGE_KEY);
             hideClearModal();
