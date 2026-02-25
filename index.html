@@ -43,11 +43,16 @@
 
         /* Content Editable Placeholder CSS */
         [contenteditable]:empty:before,
-        [contenteditable]:has(br:only-child):before {
+        [contenteditable][data-empty="true"]:before {
             content: attr(data-placeholder);
             color: #94a3b8;
             pointer-events: none;
             display: block;
+        }
+
+        /* Hide the placeholder when the user clicks inside to prevent overlaps while typing */
+        [contenteditable]:focus:before {
+            display: none !important;
         }
     </style>
 </head>
@@ -57,8 +62,8 @@
     <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
         <div class="max-w-[1600px] mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model (IRLM)</h1>
-                <p class="text-sm text-slate-500">BRIDGE ImpSci Bootcamp (Spring '26)</p>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Implementation Research Logic Model</h1>
+                <p class="text-sm text-slate-500">BRIDGE Bootcamp (Spring '26)</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button onclick="exportPNG()" class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm">
@@ -92,7 +97,7 @@
                             <div class="w-10 shrink-0 bg-slate-100 border-r border-slate-400 flex items-center justify-center p-2 text-xs font-semibold text-slate-700 group-hover:bg-slate-200 transition-colors">
                                 <div class="vertical-text-left text-center leading-tight">Intervention<br>Characteristics</div>
                             </div>
-                            <div id="det-intervention" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="List attributes of the intervention..."></div>
+                            <div id="det-intervention" contenteditable="true" class="flex-1 p-3 text-sm leading-relaxed outline-none focus:bg-slate-50 transition-colors whitespace-pre-wrap" data-placeholder="Document attributes of the intervention..."></div>
                         </div>
                         
                         <!-- Inner Setting -->
@@ -241,6 +246,16 @@
 
         let saveTimeout;
 
+        // Check and toggle emptiness attribute
+        function checkEmptyState(el) {
+            // A field is empty if it contains no text content
+            if (el.innerText.trim() === '') {
+                el.setAttribute('data-empty', 'true');
+            } else {
+                el.removeAttribute('data-empty');
+            }
+        }
+
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
@@ -249,14 +264,21 @@
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
                 if(el) {
+                    // Check initial state
+                    checkEmptyState(el);
+
                     el.addEventListener('input', function() {
-                        // Force absolute emptiness if there are only spaces or stray linebreaks
-                        if (this.innerText.trim() === '') {
-                            this.innerHTML = '';
-                        }
-                        
+                        checkEmptyState(this);
                         clearTimeout(saveTimeout);
                         saveTimeout = setTimeout(saveDataQuietly, 1000); // Wait 1s after typing stops to save
+                    });
+
+                    el.addEventListener('blur', function() {
+                        // If they click away and left it completely empty/spaces, clear stray HTML tags
+                        if (this.innerText.trim() === '') {
+                            this.innerHTML = '';
+                            checkEmptyState(this);
+                        }
                     });
                 }
             });
@@ -294,10 +316,11 @@
                 const el = document.getElementById(id);
                 if (el && data[id] !== undefined) {
                     if (data[id].trim() === '') {
-                        el.innerHTML = ''; // Ensure it perfectly matches :empty CSS
+                        el.innerHTML = ''; 
                     } else {
                         el.innerText = data[id];
                     }
+                    checkEmptyState(el);
                 }
             });
         }
@@ -364,7 +387,10 @@
         function executeClear() {
             fieldIds.forEach(id => {
                 const el = document.getElementById(id);
-                if(el) el.innerHTML = ''; // Now forces HTML to be purely empty for CSS
+                if(el) {
+                    el.innerHTML = ''; // Forces HTML to be purely empty for CSS
+                    checkEmptyState(el);
+                }
             });
             localStorage.removeItem(LOCAL_STORAGE_KEY);
             hideClearModal();
